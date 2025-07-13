@@ -1,0 +1,36 @@
+
+-- Trino SQL Example corresponding to the Oracle one
+CREATE TEMPORARY TABLE temp_sales_summary AS
+SELECT
+    p.product_id,
+    p.product_name,
+    c.category_name,
+    SUM(s.quantity) as total_quantity,
+    SUM(s.quantity * s.price) as total_revenue
+FROM
+    iceberg.default.sales s
+JOIN
+    iceberg.default.products p ON s.product_id = p.product_id
+JOIN
+    iceberg.default.categories c ON p.category_id = c.category_id
+WHERE
+    s.sale_date >= DATE '2024-01-01'
+GROUP BY
+    p.product_id,
+    p.product_name,
+    c.category_name;
+
+-- Another query using the temp table
+SELECT
+    product_name,
+    category_name,
+    total_revenue
+FROM
+    temp_sales_summary
+WHERE
+    total_revenue > 10000
+ORDER BY
+    total_revenue DESC;
+
+-- Corresponding update (conceptual, Trino uses MERGE or individual UPDATEs)
+-- UPDATE employees SET salary = salary * 1.05 WHERE department_id IN (SELECT department_id FROM departments);
